@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Waste Management Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div style="width: 80%; margin: auto;">
+        <h1>NYC Waste Management Data</h1>
+        <canvas id="lineChart"></canvas>
+        <canvas id="barChart"></canvas>
+    </div>
+
+    <script>
+        // Load the data
+        fetch('waste_data.json')
+            .then(response => response.json())
+            .then(data => {
+                // Process the data
+                const months = data.map(d => d.MONTH);
+                const refuseTons = data.map(d => parseFloat(d.REFUSETONSCOLLECTED));
+                const paperTons = data.map(d => parseFloat(d.PAPERTONSCOLLECTED || 0));
+                const mgpTons = data.map(d => parseFloat(d.MGPTONSCOLLECTED || 0));
+
+                // Create line chart
+                const ctxLine = document.getElementById('lineChart').getContext('2d');
+                const lineChart = new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Refuse Tons Collected',
+                                data: refuseTons,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                fill: false,
+                            },
+                            {
+                                label: 'Paper Tons Collected',
+                                data: paperTons,
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                fill: false,
+                            },
+                            {
+                                label: 'MGP Tons Collected',
+                                data: mgpTons,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                fill: false,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: 'Monthly Waste Collection in Brooklyn (Community District 2)'
+                        },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        hover: {
+                            mode: 'nearest',
+                            intersect: true
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Tons Collected'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Calculate monthly averages
+                const avgRefuse = (refuseTons.reduce((a, b) => a + b, 0) / refuseTons.length).toFixed(2);
+                const avgPaper = (paperTons.reduce((a, b) => a + b, 0) / paperTons.length).toFixed(2);
+                const avgMgp = (mgpTons.reduce((a, b) => a + b, 0) / mgpTons.length).toFixed(2);
+
+                // Create bar chart for averages
+                const ctxBar = document.getElementById('barChart').getContext('2d');
+                const barChart = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Refuse', 'Paper', 'MGP'],
+                        datasets: [{
+                            label: 'Average Tons Collected per Month',
+                            data: [avgRefuse, avgPaper, avgMgp],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(75, 192, 192, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(75, 192, 192, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: 'Average Monthly Waste Collection'
+                        },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Waste Type'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Average Tons Collected'
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error loading the data:', error));
+    </script>
+</body>
+</html>
